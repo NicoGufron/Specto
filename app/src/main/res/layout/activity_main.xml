@@ -1,0 +1,85 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/main_background">
+
+    <ImageView
+        android:id="@+id/setting_button"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="24dp"
+        android:layout_marginRight="18dp"
+        android:layout_marginEnd="18dp"
+        android:src="@drawable/btn_setting"
+        android:onClick="onSettingClicked"/>
+
+    <RelativeLayout
+        android:id="@+id/middle_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:focusableInTouchMode="true">
+        <ImageView
+            android:layout_marginTop="65dp"
+            android:id="@+id/main_logo"
+            android:layout_width="158dp"
+            android:layout_height="158dp"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="48dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_eye"/>
+        <EditText
+            android:id="@+id/roomChannel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/main_logo"
+            android:layout_alignLeft="@+id/startbtn"
+            android:layout_alignRight="@+id/startbtn"
+            android:layout_alignStart="@+id/startbtn"
+            android:layout_alignEnd="@+id/startbtn"
+            android:layout_marginBottom="@dimen/edit_margin_bottom"
+            android:layout_centerHorizontal="true"
+            android:paddingBottom="@dimen/edit_text_padding"
+            android:textSize="@dimen/text_size_normal"
+            android:textColor="@color/White"
+            android:hint="Enter your room channel"
+            android:textColorHint="@color/White"
+            android:textCursorDrawable="@null"
+            android:backgroundTint="@color/Orentua"
+            android:gravity="center"
+            android:digits="@string/legal_channel_name_characters"
+            android:lines="1"/>
+
+        <Button
+            android:id="@+id/startbtn"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_below="@+id/roomChannel"
+            android:paddingLeft="45dp"
+            android:paddingRight="45dp"
+            android:paddingStart="45dp"
+            android:paddingEnd="45dp"
+            android:textAlignment="gravity"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:text="Start Broadcast"
+            android:textSize="18sp"
+            android:textColor="@color/Orentua"
+            android:textAllCaps="false"
+            android:background="@drawable/start_broadcast_bg"/>
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="48dp"
+        android:text="Powered by Agora.io"
+        android:textSize="12sp"
+        android:textColor="@android:color/white" />
+</RelativeLayout>
