@@ -41,14 +41,6 @@ public abstract class BaseActivity extends AppCompatActivity implements EventHan
         });
     }
 
-    /**
-     * Give a chance to obtain view layout attributes when the
-     * content view layout process is completed.
-     * Some layout attributes will be available here but not
-     * in onCreate(), like measured width/height.
-     * This callback will be called ONLY ONCE before the whole
-     * window content is ready to be displayed for first time.
-     */
     protected void onGlobalLayoutCompleted() {
 
     }

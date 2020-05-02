@@ -1,16 +1,36 @@
 package io.agora.openlive.activities;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import io.agora.openlive.R;
 import io.agora.openlive.stats.LocalStatsData;
@@ -22,11 +42,14 @@ import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.video.VideoEncoderConfiguration;
 
 public class LiveActivity extends RtcBaseActivity {
-    private static final String TAG = LiveActivity.class.getSimpleName();
+//    private static final String TAG = LiveActivity.class.getSimpleName();
 
+    public static final String CHANNEL_ID = "misc";
+    private int notificationId = 1;
+    private String currentPhotoPath;
     private VideoGridContainer mVideoGridContainer;
-    private ImageView mMuteAudioBtn;
-    //private ImageView mMuteVideoBtn;
+    private ImageView mMuteAudioBtn, mSwitchCamera;
+    private final int REQUEST_IMAGE_CAPTURE  =1;
 
     private VideoEncoderConfiguration.VideoDimensions mVideoDimension;
 
@@ -36,6 +59,7 @@ public class LiveActivity extends RtcBaseActivity {
         setContentView(R.layout.activity_live_room);
         initUI();
         initData();
+        createNotifChannel();
     }
 
     private void initUI() {
@@ -45,8 +69,7 @@ public class LiveActivity extends RtcBaseActivity {
         
         initUserIcon();
 
-        int role = getIntent().getIntExtra(
-                io.agora.openlive.Constants.KEY_CLIENT_ROLE,
+        int role = getIntent().getIntExtra(io.agora.openlive.Constants.KEY_CLIENT_ROLE,
                 Constants.CLIENT_ROLE_AUDIENCE);
         boolean isBroadcaster =  (role == Constants.CLIENT_ROLE_BROADCASTER);
 
@@ -113,7 +136,7 @@ public class LiveActivity extends RtcBaseActivity {
 
     @Override
     public void onUserJoined(int uid, int elapsed) {
-        // Do nothing at the moment
+        notificationUserJoined();
     }
 
     @Override
@@ -219,41 +242,112 @@ public class LiveActivity extends RtcBaseActivity {
         statsManager().clearAllData();
     }
 
-    public void onLeaveClicked(View view) {
+    private void notificationUserJoined(){
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+        Intent fullScreenIntent = new Intent(this, LiveActivity.class);
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this,0,fullScreenIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_eye)
+                .setContentTitle("Specto")
+                .setContentText("A user just joined your channel!")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setFullScreenIntent(fullScreenPendingIntent,true);
+
+        notificationManager.notify(notificationId, builder.build());
+    }
+    //ambil foto tapi pindah ke aplikasi kamera
+    public void takeaPic(View view) {
+
+        Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
+        Log.e("error_pic","Error masuk sini");
+
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
+            File imageFile = null;
+            try {
+                imageFile = getImageFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (imageFile != null) {
+                Uri imageUri = FileProvider.getUriForFile(this, "io.agora.openlive.fileprovider", imageFile);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    public void goBack(View View){
         finish();
     }
 
+    public void SettingsIntent(View view){
+        Intent intent = new Intent(LiveActivity.this,SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    //ganti kamera
     public void onSwitchCameraClicked(View view) {
         rtcEngine().switchCamera();
     }
+    //kasih nama file dari foto yg diambil
+    private File getImageFile() throws IOException{
+        String timestamp = new SimpleDateFormat("ddMMyyyy").format(new Date());
+        String imageName = "Photo1_"+timestamp+"_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
-    public void onBeautyClicked(View view) {
-        view.setActivated(!view.isActivated());
-        rtcEngine().setBeautyEffectOptions(view.isActivated(),
-                io.agora.openlive.Constants.DEFAULT_BEAUTY_OPTIONS);
+        File imageFile = File.createTempFile(imageName, ".jpg",storageDir);
+        currentPhotoPath = imageFile.getAbsolutePath();
+        return imageFile;
+
     }
 
-    public void onMoreClicked(View view) {
-        // Do nothing at the moment
-    }
+//    public void onBeautyClicked(View view) {
+//        view.setActivated(!view.isActivated());
+//        rtcEngine().setBeautyEffectOptions(view.isActivated(),
+//                io.agora.openlive.Constants.DEFAULT_BEAUTY_OPTIONS);
+//    }
 
-    public void onPushStreamClicked(View view) {
-        // Do nothing at the moment
-    }
+//    public void onMoreClicked(View view) {
+//        // Do nothing at the moment
+//    }
+//
+//    public void onPushStreamClicked(View view) {
+//        // Do nothing at the moment
+//    }
 
+
+    //mute audio
     public void onMuteAudioClicked(View view) {
-        //if (!mMuteVideoBtn.isActivated()) return;
-
         rtcEngine().muteLocalAudioStream(view.isActivated());
         view.setActivated(!view.isActivated());
     }
 
-    public void onMuteVideoClicked(View view) {
-        if (view.isActivated()) {
-            stopBroadcast();
-        } else {
-            startBroadcast();
+    //JANGAN DIHAPUS
+    private void createNotifChannel(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name,importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
-        view.setActivated(!view.isActivated());
     }
+
+//    public void onMuteVideoClicked(View view) {
+//        if (view.isActivated()) {
+//            stopBroadcast();
+//        } else {
+//            startBroadcast();
+//        }
+//        view.setActivated(!view.isActivated());
+//    }
 }

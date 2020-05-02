@@ -27,8 +27,6 @@ import static io.agora.openlive.Constants.PREF_RESOLUTION_IDX;
 public class SettingsActivity extends BaseActivity {
     private static final int DEFAULT_SPAN = 3;
 
-    private TextView mVideoStatCheck, mMirrorLocalText, mMirrorRemoteText, mMirrorEncodeText;
-
     private int mItemPadding;
     private ResolutionAdapter mResolutionAdapter;
     private RecyclerView.ItemDecoration mItemDecoration =
@@ -71,18 +69,6 @@ public class SettingsActivity extends BaseActivity {
         resolutionList.addItemDecoration(mItemDecoration);
 
         mItemPadding = getResources().getDimensionPixelSize(R.dimen.setting_resolution_item_padding);
-
-        mVideoStatCheck = findViewById(R.id.setting_stats_checkbox);
-        mVideoStatCheck.setActivated(config().ifShowVideoStats());
-
-        mMirrorLocalText = findViewById(R.id.setting_mirror_local_value);
-        resetText(mMirrorLocalText, config().getMirrorLocalIndex());
-
-        mMirrorRemoteText = findViewById(R.id.setting_mirror_remote_value);
-        resetText(mMirrorRemoteText, config().getMirrorRemoteIndex());
-
-        mMirrorEncodeText = findViewById(R.id.setting_mirror_encode_value);
-        resetText(mMirrorEncodeText, config().getMirrorEncodeIndex());
     }
 
     private void resetText(TextView view, int index) {
@@ -110,7 +96,7 @@ public class SettingsActivity extends BaseActivity {
 
     public void onBackArrowPressed(View view) {
         saveResolution();
-        saveShowStats();
+//        saveShowStats();
         finish();
     }
 
@@ -120,11 +106,11 @@ public class SettingsActivity extends BaseActivity {
         mPref.edit().putInt(PREF_RESOLUTION_IDX, profileIndex).apply();
     }
 
-    private void saveShowStats() {
-        config().setIfShowVideoStats(mVideoStatCheck.isActivated());
-        mPref.edit().putBoolean(Constants.PREF_ENABLE_STATS,
-                mVideoStatCheck.isActivated()).apply();
-    }
+//    private void saveShowStats() {
+//        config().setIfShowVideoStats(mVideoStatCheck.isActivated());
+//        mPref.edit().putBoolean(Constants.PREF_ENABLE_STATS,
+//                mVideoStatCheck.isActivated()).apply();
+//    }
 
     private void saveVideoMirrorMode(String key, int value) {
         if (TextUtils.isEmpty(key))
@@ -151,20 +137,20 @@ public class SettingsActivity extends BaseActivity {
     public void onClick(View view) {
         String key = null;
         TextView textView = null;
-        switch (view.getId()) {
-            case R.id.setting_mirror_local_view:
-                key = Constants.PREF_MIRROR_LOCAL;
-                textView = mMirrorLocalText;
-                break;
-            case R.id.setting_mirror_remote_view:
-                key = Constants.PREF_MIRROR_REMOTE;
-                textView = mMirrorRemoteText;
-                break;
-            case R.id.setting_mirror_encode_view:
-                key = Constants.PREF_MIRROR_ENCODE;
-                textView = mMirrorEncodeText;
-                break;
-        }
+//        switch (view.getId()) {
+//            case R.id.setting_mirror_local_view:
+//                key = Constants.PREF_MIRROR_LOCAL;
+//                textView = mMirrorLocalText;
+//                break;
+//            case R.id.setting_mirror_remote_view:
+//                key = Constants.PREF_MIRROR_REMOTE;
+//                textView = mMirrorRemoteText;
+//                break;
+//            case R.id.setting_mirror_encode_view:
+//                key = Constants.PREF_MIRROR_ENCODE;
+//                textView = mMirrorEncodeText;
+//                break;
+//        }
         if (textView != null) {
             showDialog(key, textView);
         }

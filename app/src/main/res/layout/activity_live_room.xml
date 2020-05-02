@@ -5,13 +5,27 @@
     <io.agora.openlive.ui.VideoGridContainer
         android:id="@+id/live_video_grid_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></io.agora.openlive.ui.VideoGridContainer>
+        android:layout_height="match_parent">
+
+    </io.agora.openlive.ui.VideoGridContainer>
 
     <RelativeLayout
         android:id="@+id/live_room_top_layout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/live_top_layout_height"
+        android:layout_height="76dp"
         android:layout_alignParentTop="true">
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/btn_back_arrow"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/btn_back_arrow"
+            android:layout_marginBottom="6dp"
+            android:onClick="goBack"
+            />
+
         <ImageView
             android:layout_width="36dp"
             android:layout_height="36dp"
@@ -21,18 +35,18 @@
             android:layout_alignParentEnd="true"
             android:layout_marginRight="22dp"
             android:layout_marginEnd="22dp"
-            android:src="@drawable/btn_leave"
             android:scaleType="centerCrop"
-            android:background="@drawable/rounded_bg_half_transparent"
-            android:onClick="onLeaveClicked"/>
+            android:background="@drawable/btn_setting"
+            android:id="@+id/btnSetting"
+            android:onClick="SettingsIntent"/>
         <RelativeLayout
             android:id="@+id/live_name_space_layout"
             android:layout_width="186dp"
-            android:layout_height="@dimen/live_name_board_height"
+            android:layout_height="48dp"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_marginLeft="22dp"
+            android:layout_marginLeft="70dp"
             android:layout_marginStart="22dp"
             android:gravity="center"
             android:background="@drawable/live_name_board_bg">
@@ -78,7 +92,7 @@
         android:layout_marginStart="18dp"
         android:layout_marginRight="18dp"
         android:layout_marginEnd="18dp"
-        android:layout_marginBottom="18dp">
+        android:layout_marginBottom="45dp">
         <!--        switch camera-->
         <ImageView
             android:id="@+id/live_btn_switch_camera"
@@ -93,6 +107,17 @@
             android:background="@drawable/rounded_bg_full_transparent"
             android:onClick="onSwitchCameraClicked"/>
 <!--        mute audio-->
+
+        <ImageView
+            android:layout_height="80dp"
+            android:layout_width="80dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/rounded_bg_full_transparent"
+            android:src="@drawable/ic_photo_camera_black_24dp"
+            android:scaleType="centerCrop"
+            android:onClick="takeaPic"
+            />
+
         <ImageView
             android:id="@+id/live_btn_mute_audio"
             android:layout_width="80dp"

@@ -3,18 +3,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/main_background">
 
-    <ImageView
-        android:id="@+id/setting_button"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="24dp"
-        android:layout_marginRight="18dp"
-        android:layout_marginEnd="18dp"
-        android:src="@drawable/btn_setting"
-        android:onClick="onSettingClicked"/>
+
 
     <RelativeLayout
         android:id="@+id/middle_layout"
@@ -41,10 +30,10 @@
             android:layout_alignRight="@+id/startbtn"
             android:layout_alignStart="@+id/startbtn"
             android:layout_alignEnd="@+id/startbtn"
-            android:layout_marginBottom="@dimen/edit_margin_bottom"
+            android:layout_marginBottom="42dp"
             android:layout_centerHorizontal="true"
-            android:paddingBottom="@dimen/edit_text_padding"
-            android:textSize="@dimen/text_size_normal"
+            android:paddingBottom="16dp"
+            android:textSize="16sp"
             android:textColor="@color/White"
             android:hint="Enter your room channel"
             android:textColorHint="@color/White"
