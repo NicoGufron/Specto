@@ -1,17 +1,24 @@
 package io.agora.openlive.activities;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
@@ -20,12 +27,19 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,37 +55,45 @@ import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.video.VideoEncoderConfiguration;
 
-public class LiveActivity extends RtcBaseActivity {
+public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback {
 //    private static final String TAG = LiveActivity.class.getSimpleName();
 
-    public static final String CHANNEL_ID = "misc";
     private int notificationId = 1;
+    private static final int requestCode = 1000;
+    private final int REQUEST_IMAGE_CAPTURE  =1;
+    String[] PERMISSION = {Manifest.permission.ACCESS_FINE_LOCATION};
     private String currentPhotoPath;
+    public static final String CHANNEL_ID = "misc";
     private VideoGridContainer mVideoGridContainer;
     private ImageView mMuteAudioBtn, mSwitchCamera;
-    private final int REQUEST_IMAGE_CAPTURE  =1;
-
     private VideoEncoderConfiguration.VideoDimensions mVideoDimension;
+    private TextView Speed, roomName;
+
+    private MapView mMapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
+        mMapView = (MapView) findViewById(R.id.gpsMap);
         initUI();
+        initMap(savedInstanceState);
         initData();
         createNotifChannel();
     }
 
     private void initUI() {
-        TextView roomName = findViewById(R.id.roomChannel);
+        roomName = (TextView) findViewById(R.id.roomChannel);
         roomName.setText(config().getChannelName());
         roomName.setSelected(true);
-        
-        initUserIcon();
+        Speed = (TextView) findViewById(R.id.speed);
 
         int role = getIntent().getIntExtra(io.agora.openlive.Constants.KEY_CLIENT_ROLE,
                 Constants.CLIENT_ROLE_AUDIENCE);
         boolean isBroadcaster =  (role == Constants.CLIENT_ROLE_BROADCASTER);
+
+//        initLocation();
+
 
 //        mMuteVideoBtn = findViewById(R.id.live_btn_mute_video);
 //        mMuteVideoBtn.setActivated(isBroadcaster);
@@ -91,12 +113,13 @@ public class LiveActivity extends RtcBaseActivity {
         if (isBroadcaster) startBroadcast();
     }
 
-    private void initUserIcon() {
-        Bitmap origin = BitmapFactory.decodeResource(getResources(), R.drawable.fake_user_icon);
-        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(getResources(), origin);
-        drawable.setCircular(true);
-//        ImageView iconView = findViewById(R.id.live_name_board_icon);
-//        iconView.setImageDrawable(drawable);
+    private void initMap(Bundle savedInstanceState){
+        Bundle mapViewBundle = null;
+        if(savedInstanceState != null){
+            mapViewBundle = savedInstanceState.getBundle(io.agora.openlive.Constants.MAPVIEW_BUNDLE_KEY);
+        }
+        mMapView.onCreate(mapViewBundle);
+        mMapView.getMapAsync(this);
     }
 
     private void initData() {
@@ -259,6 +282,23 @@ public class LiveActivity extends RtcBaseActivity {
 
         notificationManager.notify(notificationId, builder.build());
     }
+
+    private void Careful(){
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+        Intent fullScreenIntent = new Intent(this,LiveActivity.class);
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this,0,fullScreenIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_eye)
+                .setContentTitle("You're going too fast! Slow down!")
+                .setPriority(NotificationManager.IMPORTANCE_HIGH)
+                .setAutoCancel(true)
+                .setFullScreenIntent(fullScreenPendingIntent,true);
+
+        notificationManager.notify(notificationId,builder.build());
+    }
+
     //ambil foto tapi pindah ke aplikasi kamera
     public void takeaPic(View view) {
 
@@ -307,21 +347,16 @@ public class LiveActivity extends RtcBaseActivity {
 
     }
 
-//    public void onBeautyClicked(View view) {
-//        view.setActivated(!view.isActivated());
-//        rtcEngine().setBeautyEffectOptions(view.isActivated(),
-//                io.agora.openlive.Constants.DEFAULT_BEAUTY_OPTIONS);
-//    }
+    private boolean checkSelfPermission(String permission, int requestCode){
 
-//    public void onMoreClicked(View view) {
-//        // Do nothing at the moment
-//    }
-//
-//    public void onPushStreamClicked(View view) {
-//        // Do nothing at the moment
-//    }
+        if( ContextCompat.checkSelfPermission(this, permission) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, PERMISSION, requestCode);
+            return false;
+        }
 
-
+        return true;
+    }
     //mute audio
     public void onMuteAudioClicked(View view) {
         rtcEngine().muteLocalAudioStream(view.isActivated());
@@ -341,6 +376,33 @@ public class LiveActivity extends RtcBaseActivity {
             notificationManager.createNotificationChannel(channel);
         }
     }
+    private void updateSpeed(LocationClass location){
+        float currentSpeed = 0;
+
+        if(location != null){
+            currentSpeed = location.getSpeed();
+            Speed.setText(currentSpeed + "km/h");
+            if(currentSpeed >= 45){
+                Speed.setTextColor(Color.RED);
+                Careful();
+            }
+        }
+    }
+
+    //biar tetap bisa ngejalanin mapsnya
+    @Override
+    protected void onResume() {
+        mMapView.onResume();
+        super.onResume();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        googleMap.addMarker(new MarkerOptions().position(new LatLng(0,0)).title("Marker"));
+        googleMap.setMyLocationEnabled(true);
+
+    }
+
 
 //    public void onMuteVideoClicked(View view) {
 //        if (view.isActivated()) {
