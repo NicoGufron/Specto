@@ -79,9 +79,46 @@
                 android:gravity="top"
                 android:text="sample room channel"
                 android:textColor="@color/White"
-                android:textSize="@dimen/text_size_small"/>
+                android:textSize="16sp"/>
         </RelativeLayout>
     </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/live_room_top_layout">
+        <com.google.android.gms.maps.MapView
+            android:layout_width="175dp"
+            android:layout_height="200dp"
+            android:id="@+id/gpsMap"/>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="50dp"
+        android:layout_marginBottom="180dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your speed: "
+        android:textColor="@color/White"
+        android:textStyle="bold"
+        android:id="@+id/yourspeed"
+        />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sample"
+            android:id="@+id/speed"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/White"
+            android:layout_below="@+id/yourspeed"/>
+    </RelativeLayout>
+
 
     <RelativeLayout
         android:id="@+id/bottom_container"
@@ -96,8 +133,8 @@
         <!--        switch camera-->
         <ImageView
             android:id="@+id/live_btn_switch_camera"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
@@ -106,22 +143,21 @@
             android:scaleType="centerCrop"
             android:background="@drawable/rounded_bg_full_transparent"
             android:onClick="onSwitchCameraClicked"/>
-<!--        mute audio-->
+
 
         <ImageView
-            android:layout_height="80dp"
-            android:layout_width="80dp"
+            android:layout_width="47dp"
+            android:layout_height="47dp"
             android:layout_centerInParent="true"
             android:background="@drawable/rounded_bg_full_transparent"
-            android:src="@drawable/ic_photo_camera_black_24dp"
-            android:scaleType="centerCrop"
             android:onClick="takeaPic"
-            />
-
+            android:scaleType="centerCrop"
+            android:src="@drawable/picture" />
+        <!--        mute audio-->
         <ImageView
             android:id="@+id/live_btn_mute_audio"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_marginRight="40dp"
             android:layout_marginEnd="40dp"
             android:layout_centerVertical="true"
