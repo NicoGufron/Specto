@@ -7,44 +7,45 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.location.LocationListener;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimerTask;
 
 import io.agora.openlive.R;
 import io.agora.openlive.stats.LocalStatsData;
@@ -55,12 +56,11 @@ import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.video.VideoEncoderConfiguration;
 
-public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback {
-//    private static final String TAG = LiveActivity.class.getSimpleName();
+public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback, LocationListener {
 
     private int notificationId = 1;
     private static final int requestCode = 1000;
-    private final int REQUEST_IMAGE_CAPTURE  =1;
+    private final int REQUEST_IMAGE_CAPTURE = 1;
     String[] PERMISSION = {Manifest.permission.ACCESS_FINE_LOCATION};
     private String currentPhotoPath;
     public static final String CHANNEL_ID = "misc";
@@ -68,19 +68,25 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
     private ImageView mMuteAudioBtn, mSwitchCamera;
     private VideoEncoderConfiguration.VideoDimensions mVideoDimension;
     private TextView Speed, roomName;
-
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    public double latitude, longitude;
+    public static final float DEFAULT_ZOOM = 18.0f;
+    private float speed;
+    private LocationManager locationManager;
     private MapView mMapView;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
-        mMapView = (MapView) findViewById(R.id.gpsMap);
-        initUI();
-        initMap(savedInstanceState);
-        initData();
         createNotifChannel();
+        initUI();
+        initData();
+        mMapView = (MapView) findViewById(R.id.gpsMap);
+        initMap(savedInstanceState);
     }
+
 
     private void initUI() {
         roomName = (TextView) findViewById(R.id.roomChannel);
@@ -88,34 +94,62 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
         roomName.setSelected(true);
         Speed = (TextView) findViewById(R.id.speed);
 
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        Speed.setText( 0 + "km/h");
+
         int role = getIntent().getIntExtra(io.agora.openlive.Constants.KEY_CLIENT_ROLE,
                 Constants.CLIENT_ROLE_AUDIENCE);
-        boolean isBroadcaster =  (role == Constants.CLIENT_ROLE_BROADCASTER);
-
-//        initLocation();
-
-
-//        mMuteVideoBtn = findViewById(R.id.live_btn_mute_video);
-//        mMuteVideoBtn.setActivated(isBroadcaster);
+        boolean isBroadcaster = (role == Constants.CLIENT_ROLE_BROADCASTER);
 
         mMuteAudioBtn = findViewById(R.id.live_btn_mute_audio);
         mMuteAudioBtn.setActivated(isBroadcaster);
 
-//        ImageView beautyBtn = findViewById(R.id.live_btn_beautification);
-//        beautyBtn.setActivated(true);
-//        rtcEngine().setBeautyEffectOptions(beautyBtn.isActivated(),
-//                io.agora.openlive.Constants.DEFAULT_BEAUTY_OPTIONS);
-
         mVideoGridContainer = findViewById(R.id.live_video_grid_layout);
-        //mVideoGridContainer.setStatsManager(statsManager());
+        mVideoGridContainer.setStatsManager(statsManager());
 
         rtcEngine().setClientRole(role);
         if (isBroadcaster) startBroadcast();
     }
 
-    private void initMap(Bundle savedInstanceState){
+    private void getLastKnownLocation() {
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300, 10, this);
+        Task locationResult = mFusedLocationProviderClient.getLastLocation();
+        locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                if (task.isSuccessful()) {
+                    Location location = task.getResult();
+                    latitude = location.getLatitude();
+                    longitude = location.getLongitude();
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(location.getLatitude(),
+                                    location.getLongitude()), DEFAULT_ZOOM));
+                } else {
+                    Log.d("Debug", "Current location is null. Using defaults.");
+                    Log.e("Error", "Exception: %s", task.getException());
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(0, 0), DEFAULT_ZOOM));
+                    mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                }
+            }
+        });
+
+        //googlemap api sudah ada harusnya
+        //routes api
+        //directions api
+
+    }
+
+    private void initMap(Bundle savedInstanceState) {
         Bundle mapViewBundle = null;
-        if(savedInstanceState != null){
+        if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(io.agora.openlive.Constants.MAPVIEW_BUNDLE_KEY);
         }
         mMapView.onCreate(mapViewBundle);
@@ -265,45 +299,46 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
         statsManager().clearAllData();
     }
 
-    private void notificationUserJoined(){
+
+    private void notificationUserJoined() {
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
         Intent fullScreenIntent = new Intent(this, LiveActivity.class);
-        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this,0,fullScreenIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_eye)
                 .setContentTitle("Specto")
                 .setContentText("A user just joined your channel!")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationManager.IMPORTANCE_HIGH)
                 .setAutoCancel(true)
-                .setFullScreenIntent(fullScreenPendingIntent,true);
+                .setFullScreenIntent(fullScreenPendingIntent, true);
 
         notificationManager.notify(notificationId, builder.build());
     }
 
-    private void Careful(){
+    private void Careful() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
-        Intent fullScreenIntent = new Intent(this,LiveActivity.class);
-        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this,0,fullScreenIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent fullScreenIntent = new Intent(this, LiveActivity.class);
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_eye)
                 .setContentTitle("You're going too fast! Slow down!")
                 .setPriority(NotificationManager.IMPORTANCE_HIGH)
                 .setAutoCancel(true)
-                .setFullScreenIntent(fullScreenPendingIntent,true);
+                .setFullScreenIntent(fullScreenPendingIntent, true);
 
-        notificationManager.notify(notificationId,builder.build());
+        notificationManager.notify(notificationId, builder.build());
     }
 
     //ambil foto tapi pindah ke aplikasi kamera
     public void takeaPic(View view) {
 
-        Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
-        Log.e("error_pic","Error masuk sini");
+        //Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
+        Log.e("error_pic", "Error masuk sini");
 
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
@@ -322,12 +357,12 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
         }
     }
 
-    public void goBack(View View){
+    public void goBack(View View) {
         finish();
     }
 
-    public void SettingsIntent(View view){
-        Intent intent = new Intent(LiveActivity.this,SettingsActivity.class);
+    public void SettingsIntent(View view) {
+        Intent intent = new Intent(LiveActivity.this, SettingsActivity.class);
         startActivity(intent);
     }
 
@@ -335,21 +370,22 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
     public void onSwitchCameraClicked(View view) {
         rtcEngine().switchCamera();
     }
+
     //kasih nama file dari foto yg diambil
-    private File getImageFile() throws IOException{
+    private File getImageFile() throws IOException {
         String timestamp = new SimpleDateFormat("ddMMyyyy").format(new Date());
-        String imageName = "Photo1_"+timestamp+"_";
+        String imageName = "Photo1_" + timestamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
-        File imageFile = File.createTempFile(imageName, ".jpg",storageDir);
+        File imageFile = File.createTempFile(imageName, ".jpg", storageDir);
         currentPhotoPath = imageFile.getAbsolutePath();
         return imageFile;
 
     }
 
-    private boolean checkSelfPermission(String permission, int requestCode){
+    private boolean checkSelfPermission(String permission, int requestCode) {
 
-        if( ContextCompat.checkSelfPermission(this, permission) !=
+        if (ContextCompat.checkSelfPermission(this, permission) !=
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, PERMISSION, requestCode);
             return false;
@@ -357,6 +393,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
 
         return true;
     }
+
     //mute audio
     public void onMuteAudioClicked(View view) {
         rtcEngine().muteLocalAudioStream(view.isActivated());
@@ -364,28 +401,16 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
     }
 
     //JANGAN DIHAPUS
-    private void createNotifChannel(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+    private void createNotifChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = getString(R.string.channel_name);
             String description = getString(R.string.channel_description);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name,importance);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
-        }
-    }
-    private void updateSpeed(LocationClass location){
-        float currentSpeed = 0;
-
-        if(location != null){
-            currentSpeed = location.getSpeed();
-            Speed.setText(currentSpeed + "km/h");
-            if(currentSpeed >= 45){
-                Speed.setTextColor(Color.RED);
-                Careful();
-            }
         }
     }
 
@@ -394,22 +419,70 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback 
     protected void onResume() {
         mMapView.onResume();
         super.onResume();
+        getLastKnownLocation();
+
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        googleMap.addMarker(new MarkerOptions().position(new LatLng(0,0)).title("Marker"));
-        googleMap.setMyLocationEnabled(true);
+        mMap = googleMap;
+//        getLastKnownLocation();
+        mMap.setMyLocationEnabled(true);
+    }
+
+    private LocationManager lastLocation;
+
+    @Override
+    public void onLocationChanged(Location currLocation) {
+
+        TimerTask
+
+        speed = currLocation.getSpeed();
+        Speed.setText(speed+ " km/h");
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(currLocation.getLatitude(),
+                        currLocation.getLongitude()), DEFAULT_ZOOM));
 
     }
 
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
 
-//    public void onMuteVideoClicked(View view) {
-//        if (view.isActivated()) {
-//            stopBroadcast();
-//        } else {
-//            startBroadcast();
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+//
+//    private Location lastLocation;
+//
+//    @Override
+//    public void onLocationChanged(Location location) {
+//
+////        getLastKnownLocation();
+//        if(location != null){
+//            speed = Math.sqrt(Math.pow(location.getLongitude()));
 //        }
-//        view.setActivated(!view.isActivated());
+//    }
+//
+//    @Override
+//    public void onStatusChanged(String provider, int status, Bundle extras) {
+//
+//    }
+//
+//    @Override
+//    public void onProviderEnabled(String provider) {
+//
+//    }
+//
+//    @Override
+//    public void onProviderDisabled(String provider) {
+//
 //    }
 }

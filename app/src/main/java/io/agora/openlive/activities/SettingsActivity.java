@@ -2,11 +2,13 @@ package io.agora.openlive.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -49,6 +51,7 @@ public class SettingsActivity extends BaseActivity {
             };
 
     private SharedPreferences mPref;
+    private ImageView Media,Account;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,8 @@ public class SettingsActivity extends BaseActivity {
         resolutionList.addItemDecoration(mItemDecoration);
 
         mItemPadding = getResources().getDimensionPixelSize(R.dimen.setting_resolution_item_padding);
+        Media = (ImageView) findViewById(R.id.media);
+        Account = (ImageView) findViewById(R.id.account);
     }
 
     private void resetText(TextView view, int index) {
@@ -98,6 +103,15 @@ public class SettingsActivity extends BaseActivity {
         saveResolution();
 //        saveShowStats();
         finish();
+    }
+
+    public void gotoMedia(View view){
+//        Intent intent = new Intent(SettingsActivity.this,MediaActivity.class);
+//        startActivity(intent);
+    }
+    public void gotoAccount(View view){
+        Intent intent = new Intent(SettingsActivity.this,AccountActivity.class);
+        startActivity(intent);
     }
 
     private void saveResolution() {
@@ -134,26 +148,30 @@ public class SettingsActivity extends BaseActivity {
         statsManager().enableStats(view.isActivated());
     }
 
-    public void onClick(View view) {
-        String key = null;
-        TextView textView = null;
-//        switch (view.getId()) {
-//            case R.id.setting_mirror_local_view:
-//                key = Constants.PREF_MIRROR_LOCAL;
-//                textView = mMirrorLocalText;
-//                break;
-//            case R.id.setting_mirror_remote_view:
-//                key = Constants.PREF_MIRROR_REMOTE;
-//                textView = mMirrorRemoteText;
-//                break;
-//            case R.id.setting_mirror_encode_view:
-//                key = Constants.PREF_MIRROR_ENCODE;
-//                textView = mMirrorEncodeText;
-//                break;
+//    public void onClick(View view) {
+//        String key = null;
+//        TextView textView = null;
+////        switch (view.getId()) {
+////            case R.id.setting_mirror_local_view:
+////                key = Constants.PREF_MIRROR_LOCAL;
+////                textView = mMirrorLocalText;
+////                break;
+////            case R.id.setting_mirror_remote_view:
+////                key = Constants.PREF_MIRROR_REMOTE;
+////                textView = mMirrorRemoteText;
+////                break;
+////            case R.id.setting_mirror_encode_view:
+////                key = Constants.PREF_MIRROR_ENCODE;
+////                textView = mMirrorEncodeText;
+////                break;
+////        }
+//        if (textView != null) {
+//            showDialog(key, textView);
 //        }
-        if (textView != null) {
-            showDialog(key, textView);
-        }
+//    }
+    public void Register(View view){
+        Intent intent = new Intent(SettingsActivity.this, AccountActivity.class);
+        startActivity(intent);
     }
 
     private void showDialog(final String key, final TextView view) {
