@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html>
+<title>Dashboard Specto</title>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="bootstrap/bootstrap.css">
+</head>
+<style>
+    body{
+        background-color: #ffffff;
+    }
+    .sidenav{
+        height: 100%;
+        width: 0;
+        position:fixed;
+        z-index:1;
+        top: 0;
+        left: 0;
+        background-color: #E95420;
+        overflow-x: hidden;
+        padding-top:60px;
+        transition: 0.5s;
+    }
+    .sidenav a{
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #FFFFFF;
+        display: block;
+        transition: 0.3s;
+    }
+    .sidenav a:hover{
+        color: black;
+    }
+    .sidenav .closebtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size:36px;
+        margin-left:50px;
+    }
+    .jumbotron{
+    /* transition: margin-left .5s;
+        padding: 20px; */
+        margin:3%;
+        padding:5%; 
+
+    }
+    @media screen and (max-height:450px){
+        .sidenav{padding-top:15px;}
+        .sidenav a{font-size:18px;}
+        .main{font-size:18px;}
+    }
+    h1,h2{
+        text-align: center;
+        margin-bottom: 3%;
+    }
+</style>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="#" onclick="openNav()">Specto</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        </button>
+      </nav>
+
+      <!-- sidemenu -->
+    <div id ="sidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="#" class="active">Account</a>
+        <a href="#">Storage</a>
+        <a href="#">About</a>
+    </div>
+
+    <div class="jumbotron">
+        <h1 class="display-3">Welcome to the Dashboard!</h1>
+        <p class="lead">This is a website application that focuses on maintaining files on videos or photos that you upload from your phone.</p>
+        <hr class="my-4">
+        <p>In here, you can manage your files, from deleting, change your file name, or even preview the photo or video you have uploaded.</p>
+        <p class="lead">
+          <a class="btn btn-primary btn-lg" href="login.php" role="button">Let's get started</a>
+        </p>
+      </div>
+
+</body>
+<script>
+    function openNav(){
+        document.getElementById("sidenav").style.width="250px";
+    }
+    function closeNav(){
+        document.getElementById("sidenav").style.width = "0px";
+    }
+</script>
+
+</html>
