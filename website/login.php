@@ -4,17 +4,17 @@ session_start();
 if(isset($_SESSION["email"])){
     header("storage.php");
 }
+$result = "";
 if($_POST){
     $email = $_POST["email"];
     $pass = $_POST["password"];
-    $_SESSION = $email;
+    $_SESSION['email']= $email;
 
     // query untuk ngecek email ama pass
-    // $sql = "SELECT * from users where email = '$email' and password = '$pass'";
-    // $q = mysqli_query($conn, $sql);
+    $sql = "SELECT * from users where email = '$email' and password = '$pass'";
+    $q = mysqli_query($conn, $sql);
 
-    // $flag = mysqli_num_rows($q);
-    $flag = 0;
+    $flag = mysqli_num_rows($q);
     if($flag == 1){
         $result = 
             "<div class='alert alert-dismissible alert-success'>
@@ -51,6 +51,9 @@ if($_POST){
                 padding-right:8%;
                 padding-bottom:9%;
             }
+            p{
+                text-align:center;
+            }
             h1{
                 text-align:center;
                 padding-top:4%;
@@ -84,6 +87,7 @@ if($_POST){
                 <br>
                 <button class="btn btn-primary">Login</button>
             </form>
+            <p>Don't have any account? <a href="account_register.php"><u>Register here</u></a></p>
         </div>
     </body>
 </html>

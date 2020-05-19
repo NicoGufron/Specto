@@ -1,9 +1,47 @@
 <?php
-if($_SESSION){
-    $email = "nicogufron@gmail.com";
-    $name = "Nico Gufron";
+require_once("connect.php");
+session_start();
+include ("navbar.html");
+$result = "";
+if(isset($_SESSION['email'])){
+    $email = $_SESSION['email'];
+    $sql = "SELECT name,password FROM users where email = '$email'";
+    $q = mysqli_query($conn,$sql);
+    $data = mysqli_fetch_assoc($q);
+    $name = $data['name'];
+    $password = $data['password'];
+}else{
+    header("location: login.php");
 }
-
+if($_POST){
+    $name = $_POST["name"];
+    $email = $_POST["email"];
+    $pass1 = $_POST["pass1"];
+    $pass2 = $_POST["pass2"];
+    if($pass1 != $pass2){
+        $result = 
+            "<div class='alert alert-dismissible alert-danger'>
+                <button type='button' class='close' data-dismiss='alert'>&times;</button>
+                <strong>Passwords are not the same!</strong>
+            </div>";
+    }else{
+        $sql = "UPDATE users SET name = '$name', email = '$email', password = '$pass1'";
+        $q = mysqli_query($conn,$sql);
+        if($q == TRUE){
+            $result = 
+               "<div class='alert alert-dismissible alert-success'>
+                   <button type='button' class='close' data-dismiss='alert'>&times;</button>
+                   <strong>Updates saved!</strong>
+               </div>";
+        }else{
+            $result = 
+            "<div class='alert alert-dismissible alert-danger'>
+                <button type='button' class='close' data-dismiss='alert'>&times;</button>
+                <strong>Oops! Something went wrong!</strong>
+            </div>";
+        }
+    }
+}
 ?>
 <!DOCTYPE HTML>
 
@@ -11,6 +49,8 @@ if($_SESSION){
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="bootstrap/bootstrap.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     </head>
     <style>
     .sidenav{
@@ -53,36 +93,22 @@ if($_SESSION){
     }
     </style>
     <body>
-        <!-- navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <a class="navbar-brand" href="#" onclick="openNav()">Specto</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-      </nav>
-
-      <!-- sidemenu -->
-    <div id ="sidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <a href="#" class="active">Account</a>
-        <a href="storage.php">Storage</a>
-        <a href="#">About</a>
-    </div>
     <div id="upper">
         <h1>Welcome, <?php echo $name?></h1>
         <p>Manage your info and privacy.</p>
     </div>
+    <?php echo $result; ?>
     <div class ="main">
         
-        <form method="post" action="account_change.php">
+        <form method="post" action="">
             Name:<br>
                 <input type="text" placeholder="Your name" class="form-control" value= <?php echo $name?> name="name"><br>
             Email:<br>
                 <input type="email" placeholder="Your email" class="form-control"value=<?php echo $email?> name="email"><br>
             Password: <br>
-                <input type="password" class="form-control" placeholder="Your password" name="pass"><br>
+                <input type="password" class="form-control" placeholder="Your password" name="pass1"><br>
             Confirm password:
-            <input type="password" class="form-control" placeholder="Enter your new password" name="ppass">
+            <input type="password" class="form-control" placeholder="Enter your new password" name="pass2">
             <br>
             <button class="btn btn-primary">Submit</button>
         </form>
