@@ -8,7 +8,9 @@ a. General
 - notif pengemudi terlalu cepat (done)
 - pengaturan channel ID harus unik (done)
 - speedometer ditambahkan (almost done)
-- pembuatan website (on progress)
+- pembuatan website (almost done)
+- crud (almost done)
+- upload to server opensource (prioritas)
 - jalan yang dilewatin ditambahkan (prioritas)
 
 b. Broadcaster
@@ -16,7 +18,9 @@ b. Broadcaster
 - notif kalo ada audience masuk (done)
 - camera API (done)
 - melacak pengemudi (prioritas) (almost done)
-- upload files (on progress)
+- upload files di hape(on progress)
+- upload files di website (done)
+
 - record screen (prioritas)
 
 c. Audience
