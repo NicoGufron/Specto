@@ -2,27 +2,12 @@
 require_once("connect.php");
 session_start();
 include ("navbar.html");
-$hiddentag = 0;
+
 $result = "";
-$resulttablev= 
-    "<th>
-        <tr></tr>
-        <tr></tr>
-        <tr></tr>
-        <tr></tr>
-        <tr></tr>
-    </th>";
-$resulttablep = 
-    "<th>
-        <tr></tr>
-        <tr></tr>
-        <tr></tr>
-        <tr></tr>
-    </th>";
 $namacuy = $_SESSION['email'];
 
 if(isset($_SESSION['email'])){
-
+    $hiddentag = 0;
     // buat upload video
     if($_POST['hiddentag'] == 1 ){
         $target_dir = "uploads/videos/";
@@ -44,7 +29,7 @@ if(isset($_SESSION['email'])){
             $datetaken = $_POST['date_taken'];
             // komen dlu biar ga refresh abis tu masuk lagi
             $sql = "INSERT INTO videos (whose, thumbnail,video_name,date_taken,start_location,end_location) VALUES ('$whose','$videoPath','$video_name','$datetaken','$startloc','$endloc');";
-            $q = mysqli_query($conn,$sql);
+            // $q = mysqli_query($conn,$sql);
             move_uploaded_file($_FILES['videofile']['tmp_name'],$target_file);
             if($q == TRUE){
                 $result = 
@@ -77,7 +62,7 @@ if(isset($_SESSION['email'])){
             $descriptionp = $_POST['description'];
             $date_photo = $_POST['date_photo'];
             $sql = "INSERT INTO photos (whose, thumbnail, location, description,date_taken) values ('$whosep','$photo','$photoloc','$descriptionp','$date_photo');";
-            $q = mysqli_query($conn,$sql);
+            // $q = mysqli_query($conn,$sql);
             move_uploaded_file($_FILES['photofile']['tmp_name'],$target_file);
             // var_dump($_SESSION);
             if($q == TRUE){
@@ -106,91 +91,14 @@ if(isset($_SESSION['email'])){
     
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <head>
-
-        <link rel="stylesheet" href="bootstrap/bootstrap.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="bootstrap/bootstrap.css">
+        <link rel="stylesheet" href="forodal.css">
+        
         <style>
             .container{
                 padding-top:3%;
-            }
-            #myImg {
-              border-radius: 5px;
-              cursor: pointer;
-              transition: 0.3s;
-            }
-
-            #myImg:hover {opacity: 0.7;}
-
-            /* The Modal (background) */
-            .modal {
-              display: none; /* Hidden by default */
-              position: fixed; /* Stay in place */
-              z-index: 1; /* Sit on top */
-              padding-top: 100px; /* Location of the box */
-              left: 0;
-              top: 0;
-              width: 100%; /* Full width */
-              height:100%; /* Full height */
-              overflow: auto; /* Enable scroll if needed */
-              background-color: rgb(0,0,0); /* Fallback color */
-              background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
-            }
-
-            /* Modal Content (Image) */
-            .modal-content {
-              margin: auto;
-              display: block;
-              width: 30%;
-              max-width: 700px;
-            }
-
-            /* Caption of Modal Image (Image Text) - Same Width as the Image */
-            #caption {
-              margin: auto;
-              display: block;
-              width: 80%;
-              max-width: 700px;
-              text-align: center;
-              color: #ccc;
-              padding: 10px 0;
-              height: 150px;
-            }
-
-            /* Add Animation - Zoom in the Modal */
-            .modal-content, #caption {
-              animation-name: zoom;
-              animation-duration: 0.6s;
-            }
-
-            @keyframes zoom {
-              from {transform:scale(0)}
-              to {transform:scale(1)}
-            }
-
-            /* The Close Button */
-            .close {
-              position: absolute;
-              top: 15px;
-              right: 35px;
-              color: #f1f1f1;
-              font-size: 40px;
-              font-weight: bold;
-              transition: 0.3s;
-            }
-
-            .close:hover,
-            .close:focus {
-              color: #bbb;
-              text-decoration: none;
-              cursor: pointer;
-            }
-
-            /* 100% Image Width on Smaller Screens */
-            @media only screen and (max-width: 700px){
-              .modal-content {
-                width: 100%;
-              }
             }
         </style>
     </head>
@@ -204,7 +112,7 @@ if(isset($_SESSION['email'])){
             </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="videos">
-            <!-- nah ini isi konten -->
+            <!-- Isi Konten -->
                     <div class="table-responsive">
                         <table class="table table-hover">   
                             <tr class="table-light">    
@@ -213,12 +121,15 @@ if(isset($_SESSION['email'])){
                                 <th>Date Taken</th> 
                                 <th>Start Location</th> 
                                 <th>Location End</th>   
+                                <th>Action</th>
                             </tr>   
+            <!-- Selesai konten -->
                             <!-- value table -->  
                             <?php
                                 $sqlv = "SELECT * FROM videos where whose = '$namacuy'";
                                 $qv = mysqli_query($conn,$sqlv);
                                 while($datavideo = mysqli_fetch_assoc($qv)){
+                                    $idv = $datavideo['id'];
                                     $thumbnails = $datavideo["thumbnail"];
                                     $videoname = $datavideo["video_name"];
                                     $startloca = $datavideo["start_location"];
@@ -234,6 +145,10 @@ if(isset($_SESSION['email'])){
                                     echo "<th>$startloca</th>";
                                     echo "<th>$endloca</th>";
                                     echo "<th>$date_taken</th>";
+                                    echo "<th>
+                                            <a href='delete_item.php?id=$idv&subject=video'><img src='assets/bin.png' width='25' height='25'></a>
+                                            <a href='update_item.php?id=$idv&subject=video'><img src='assets/edit.png' width='25' height='25'></a>
+                                        </th>";
                                     echo "</tr>";
                                 }
                             ?>
@@ -262,12 +177,14 @@ if(isset($_SESSION['email'])){
                                 <th>Photo Location</th>
                                 <th>Description</th>
                                 <th>Photo taken</th>
+                                <th>Action</th>
                             </tr>
                             <!-- value table -->
                             <?php
                             $sqlp = "SELECT * FROM photos where whose = '$namacuy'";
                             $qp = mysqli_query($conn,$sqlp);
                             while($dataphoto = mysqli_fetch_assoc($qp)){
+                                $idp = $dataphoto['id'];
                                 $thumbnailp = $dataphoto['thumbnail'];
                                 $locationp  = $dataphoto['location'];
                                 $description = $dataphoto['description'];
@@ -275,16 +192,20 @@ if(isset($_SESSION['email'])){
                                 
                                 echo "<tr>";
                                 echo "<th>
-                                        <img id='myImg' alt='$locationp' src='uploads/photos/$thumbnailp' class='img-fluid' width='200' height='200'>
+                                        <img alt='$description' src='uploads/photos/$thumbnailp' class='img-thumbnail' width='200' height='200'>
                                         <div id='modalImg' class='modal'>
-                                            <span class='close'>&times;</span>
+                                            <span class='close'>&times</span>
                                             <img class='modal-content' id='imgm'>
                                             <div id='caption'></div>
                                         </div>
                                       </th>";
                                 echo "<th>$locationp</th>";
-                                echo "<th>$descriptionp</th>";
+                                echo "<th>$description</th>";
                                 echo "<th>$datetakenp</th>";
+                                echo "<th>
+                                            <a href='delete_item.php?id=$idp&subject=photo'><img src='assets/bin.png' width='30' height='30'></a>
+                                            <a href='update_item.php?id=$idp&subject=photo'><img src='assets/edit.png' width='30' height='30'></a>
+                                    </th>";
                             }
                             ?>
                         </table>
@@ -294,9 +215,10 @@ if(isset($_SESSION['email'])){
                         <label>Upload a new photo file</label>
                             <input type="text" name="photolocation" class="form-control" placeholder="Location photo taken"><br>
                             <input type="text" name="description" class="form-control" placeholder="Description"><br>
-                            <input type="date" name="date_photo" class="form-control"><br>
-                            <input type="hidden" name="hiddentag" value="2"> 
-                            <input type="file" class="form-control-file" name="photofile" ><br>
+                            <label>Date taken:</label><br>
+                            <input type="date" name="date_photo"><br>
+                            <input type="hidden" name="hiddentag" value="2"> <br>
+                            <input type="file" class="form-control-file" name="photofile"><br>
                             <input type="submit" value="Upload" class="btn btn-primary">
                         </form>
                 </div>
@@ -307,19 +229,25 @@ if(isset($_SESSION['email'])){
     <script>
         var modal = document.getElementById('modalImg');
 
-        var img = document.getElementById('myImg');
+        var img = document.getElementsByClassName('img-thumbnail');
+        var i = img.length;
         var modalImg = document.getElementById('imgm');
         var caption = document.getElementById('caption');
-        img.onclick = function(){
-            modal.style.display = 'block';
-            modalImg.src = this.src;
-            caption.innerHTML = this.alt;
+        for(var j = 0; j < i; j++){
+            img[j].onclick = function(){
+                modal.style.display='block';
+                modalImg.src = this.src;
+                caption.innerHTML = this.alt;
+            }
         }
-
         var span = document.getElementsByClassName('close');
 
-        span.onclick = function(){
-            modal.style.display = 'none';
+        for(var j = 0 ; j < span.length;j++){
+            span[j].onclick = function(){
+                modal.style.display='none';
+            }
         }
+
+        
     </script>
 </html>

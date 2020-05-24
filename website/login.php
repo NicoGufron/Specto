@@ -87,7 +87,7 @@ if($_POST){
                 <br>
                 <button class="btn btn-primary">Login</button>
             </form>
-            <p>Don't have any account? <a href="account_register.php"><u>Register here</u></a></p>
+            <p>Don't have any account? <a href="account_register.php"><u>Sign Up</u></a></p>
         </div>
     </body>
 </html>
