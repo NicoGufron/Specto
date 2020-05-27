@@ -435,11 +435,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
 
     @Override
     public void onLocationChanged(Location currLocation) {
-
-        TimerTask
-
-        speed = currLocation.getSpeed();
-        Speed.setText(speed+ " km/h");
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(currLocation.getLatitude(),
                         currLocation.getLongitude()), DEFAULT_ZOOM));
