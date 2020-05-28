@@ -338,9 +338,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     //ambil foto tapi pindah ke aplikasi kamera
     public void takeaPic(View view) {
 
-        //Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
-        Log.e("error_pic", "Error masuk sini");
-
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
             File imageFile = null;
