@@ -1,10 +1,13 @@
 package io.agora.openlive.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -14,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
@@ -24,12 +28,15 @@ import android.location.LocationListener;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -56,6 +63,10 @@ import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.video.VideoEncoderConfiguration;
 
+import static io.agora.openlive.Constants.ERROR_DIALOG_REQUEST;
+import static io.agora.openlive.Constants.PERMISSION_REQUEST_ACCESS_FINE_LOCATION;
+import static io.agora.openlive.Constants.PERMISSION_REQUEST_ENABLE_GPS;
+
 public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback, LocationListener {
 
     private int notificationId = 1;
@@ -75,11 +86,13 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     private LocationManager locationManager;
     private MapView mMapView;
     private GoogleMap mMap;
+    private boolean MapsGranted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
+
         createNotifChannel();
         initUI();
         initData();
@@ -115,8 +128,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && 
-                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
         }
@@ -300,43 +312,103 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         statsManager().clearAllData();
     }
 
+    //check map services
+    private boolean checkMapServices(){
+        if(isServicesOk())
+            if(isMapsEnabled())
+                return true;
+            return false;
+    }
+
+    //JANGAN DIHAPUS BUAT NOTIF
+    private void createNotifChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 
     private void notificationUserJoined() {
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-        Intent fullScreenIntent = new Intent(this, LiveActivity.class);
-        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_eye)
-                .setContentTitle("Specto")
-                .setContentText("A user just joined your channel!")
-                .setPriority(NotificationManager.IMPORTANCE_HIGH)
-                .setAutoCancel(true)
-                .setFullScreenIntent(fullScreenPendingIntent, true);
+            Intent fullScreenIntent = new Intent(this, LiveActivity.class);
+            PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        notificationManager.notify(notificationId, builder.build());
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_eye)
+                    .setContentTitle("Specto")
+                    .setContentText("A user just joined your channel!")
+                    .setPriority(NotificationManager.IMPORTANCE_HIGH)
+                    .setAutoCancel(true)
+                    .setFullScreenIntent(fullScreenPendingIntent, true);
+
+            notificationManager.notify(notificationId, builder.build());
+        }else if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.O){
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+            Intent fullScreenIntent = new Intent(this, LiveActivity.class);
+            PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_eye)
+                    .setContentTitle("Specto")
+                    .setContentText("A user just joined your channel!")
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setAutoCancel(true)
+                    .setFullScreenIntent(fullScreenPendingIntent, true);
+
+            notificationManager.notify(notificationId, builder.build());
+        }
     }
 
     private void Careful() {
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
-        Intent fullScreenIntent = new Intent(this, LiveActivity.class);
-        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent fullScreenIntent = new Intent(this, LiveActivity.class);
+            PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_eye)
-                .setContentTitle("You're going too fast! Slow down!")
-                .setPriority(NotificationManager.IMPORTANCE_HIGH)
-                .setAutoCancel(true)
-                .setFullScreenIntent(fullScreenPendingIntent, true);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_eye)
+                    .setContentTitle("You're going too fast! Slow down!")
+                    .setPriority(NotificationManager.IMPORTANCE_HIGH)
+                    .setAutoCancel(true)
+                    .setFullScreenIntent(fullScreenPendingIntent, true);
 
-        notificationManager.notify(notificationId, builder.build());
+            notificationManager.notify(notificationId, builder.build());
+        }
+        else if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.O){
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+            Intent fullScreenIntent = new Intent(this, LiveActivity.class);
+            PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_eye)
+                    .setContentTitle("Specto")
+                    .setContentText("A user just joined your channel!")
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setAutoCancel(true)
+                    .setFullScreenIntent(fullScreenPendingIntent, true);
+
+            notificationManager.notify(notificationId, builder.build());
+        }
     }
 
     //ambil foto tapi pindah ke aplikasi kamera
     public void takeaPic(View view) {
+
+        //Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
+        Log.e("error_pic", "Error masuk sini");
 
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
@@ -364,6 +436,62 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         startActivity(intent);
     }
 
+    //pengecekan jika google services udah nyala
+    public boolean isServicesOk(){
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(LiveActivity.this);
+
+        if(available == ConnectionResult.SUCCESS){
+            return true;
+        }else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(LiveActivity.this, available,ERROR_DIALOG_REQUEST);
+            dialog.show();
+        }else{
+            Toast.makeText(this,"You can't make map requests", Toast.LENGTH_SHORT).show();
+        }
+        return false;
+    }
+
+    //pengecekan jika location nyala
+    public boolean isMapsEnabled(){
+        final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            NoGPS();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode){
+            case PERMISSION_REQUEST_ENABLE_GPS:{
+                if(MapsGranted){
+                    Toast.makeText(this,"Thanks for confirming!",Toast.LENGTH_LONG).show();
+
+                }else{
+                    getPermission();
+                }
+            }
+        }
+    }
+
+    private void NoGPS(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent enableGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(enableGPS, PERMISSION_REQUEST_ENABLE_GPS);
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     //ganti kamera
     public void onSwitchCameraClicked(View view) {
         rtcEngine().switchCamera();
@@ -379,6 +507,16 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         currentPhotoPath = imageFile.getAbsolutePath();
         return imageFile;
 
+    }
+
+    private void getPermission(){
+        if(ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            MapsGranted = true;
+        }else{
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSION_REQUEST_ACCESS_FINE_LOCATION);
+        }
     }
 
     private boolean checkSelfPermission(String permission, int requestCode) {
@@ -398,27 +536,30 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         view.setActivated(!view.isActivated());
     }
 
-    //JANGAN DIHAPUS
-    private void createNotifChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.channel_name);
-            String description = getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
     //biar tetap bisa ngejalanin mapsnya
     @Override
     protected void onResume() {
         mMapView.onResume();
         super.onResume();
-        getLastKnownLocation();
+        if(checkMapServices())
+            getLastKnownLocation();
+        else{
+            getPermission();
+        }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        MapsGranted = false;
+        switch(requestCode){
+            case PERMISSION_REQUEST_ACCESS_FINE_LOCATION: {
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    MapsGranted = true;
+                }
+            }
+        }
     }
 
     @Override
@@ -432,6 +573,9 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
 
     @Override
     public void onLocationChanged(Location currLocation) {
+
+        speed = currLocation.getSpeed();
+        Speed.setText(speed+ " km/h");
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(currLocation.getLatitude(),
                         currLocation.getLongitude()), DEFAULT_ZOOM));
