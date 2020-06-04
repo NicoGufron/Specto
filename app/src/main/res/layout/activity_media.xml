@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:id="@+id/role_title_layout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/Orentua">
+
+        <TextView
+            android:layout_width="27dp"
+            android:layout_height="27dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="18dp"
+            android:layout_marginLeft="18dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/btn_back_arrow"
+            android:onClick="onBackMediaPressed" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="12dp"
+            android:text="Media Storage"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+            <Button
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:text="Videos"
+            android:background="@drawable/start_broadcast_bg"
+            android:layout_marginLeft="40dp"
+            android:layout_marginTop="30dp"/>
+
+            <Button
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:text="Photos"
+            android:background="@drawable/start_broadcast_bg"
+                android:layout_marginLeft="80dp"
+            android:layout_marginTop="30dp"/>
+    </LinearLayout>
+
+
+</LinearLayout>

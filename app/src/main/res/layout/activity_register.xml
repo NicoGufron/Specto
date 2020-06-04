@@ -98,7 +98,7 @@
             android:layout_margin="20dp"
             android:layout_centerHorizontal="true"
             android:id="@+id/registerbutton"
-            android:onClick="Register"/>
+            android:onClick="RegisterAccount"/>
 
     </RelativeLayout>
 

@@ -32,53 +32,114 @@
             android:textColor="@android:color/white"
             android:textSize="18sp" />
     </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Login Page"
-            android:textSize="20sp"
+            android:text="Hello, "
             android:layout_centerHorizontal="true"
-            android:gravity="center"
-            android:id="@+id/textRegister"
+            android:id="@+id/hello"
             android:layout_marginTop="70dp"
-            android:layout_marginBottom="50dp"/>
-        <EditText
-            android:layout_width="250dp"
+            android:textSize="20sp"
+            tools:visibility="invisible"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/fullname"
+                android:text="Full name"
+                android:layout_marginTop="70dp"
+                android:textSize="20sp"
+                tools:visibility="invisible"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/textRegister"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Your email"
-            android:id="@+id/accountEmail"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="70dp"
+            android:layout_marginBottom="50dp"
+            android:gravity="center"
+            android:text="Login Page"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_below="@id/textRegister"
-            android:inputType="textEmailAddress"
             android:layout_centerHorizontal="true"
             android:gravity="center"
-            android:layout_marginBottom="15dp"/>
+            android:text="You're logged in as"
+            android:id="@+id/logged"
+            tools:visibility="invisible"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/emaillog"
+            android:layout_below="@+id/logged"
+            android:text="sample"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:textSize="19sp"
+            tools:visibility="invisible"/>
+
         <EditText
+            android:id="@+id/accountEmail"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:hint="Your password"
-            android:layout_below="@id/accountEmail"
-            android:inputType="textPassword"
-            android:id="@+id/password"
+            android:layout_below="@id/textRegister"
             android:layout_centerHorizontal="true"
+            android:layout_marginBottom="15dp"
             android:gravity="center"
-            android:layout_marginBottom="15dp"/>
+            android:hint="Your email"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/accountEmail"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="15dp"
+            android:gravity="center"
+            android:hint="Your password"
+            android:inputType="textPassword" />
+
         <Button
+            android:id="@+id/login"
             android:layout_width="150dp"
             android:layout_height="50dp"
-            android:background="@drawable/start_broadcast_bg"
             android:layout_below="@id/password"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="20dp"
+            android:background="@drawable/start_broadcast_bg"
             android:text="Login"
             android:textAllCaps="false"
-            android:textColor="@color/Orentua"
-            android:layout_margin="20dp"
-            android:id="@+id/login"
+            android:textColor="@color/Orentua" />
+
+        <Button
+            android:id="@+id/logout"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            android:layout_below="@id/password"
             android:layout_centerHorizontal="true"
-            android:onClick="Login"/>
+            android:layout_margin="20dp"
+            android:background="@drawable/start_broadcast_bg"
+
+            android:text="Logout"
+            android:textAllCaps="false"
+            android:textColor="@color/Orentua"
+            android:visibility="invisible" />
     </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
