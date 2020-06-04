@@ -106,11 +106,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void gotoMedia(View view){
-//        Intent intent = new Intent(SettingsActivity.this,MediaActivity.class);
-//        startActivity(intent);
-    }
-    public void gotoAccount(View view){
-        Intent intent = new Intent(SettingsActivity.this,AccountActivity.class);
+        Intent intent = new Intent(SettingsActivity.this,MediaActivity.class);
         startActivity(intent);
     }
 

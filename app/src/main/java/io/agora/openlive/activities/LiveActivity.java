@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -39,12 +41,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -52,7 +55,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimerTask;
+import java.util.List;
+import java.util.Locale;
 
 import io.agora.openlive.R;
 import io.agora.openlive.stats.LocalStatsData;
@@ -69,6 +73,8 @@ import static io.agora.openlive.Constants.PERMISSION_REQUEST_ENABLE_GPS;
 
 public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback, LocationListener {
 
+
+    private Geocoder geocoder;
     private int notificationId = 1;
     private static final int requestCode = 1000;
     private final int REQUEST_IMAGE_CAPTURE = 1;
@@ -76,9 +82,9 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     private String currentPhotoPath;
     public static final String CHANNEL_ID = "misc";
     private VideoGridContainer mVideoGridContainer;
-    private ImageView mMuteAudioBtn, mSwitchCamera;
+    private ImageView mMuteAudioBtn, mSwitchCamera, takePic;
     private VideoEncoderConfiguration.VideoDimensions mVideoDimension;
-    private TextView Speed, roomName;
+    private TextView Speed, roomName, addressst;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     public double latitude, longitude;
     public static final float DEFAULT_ZOOM = 18.0f;
@@ -88,31 +94,60 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     private GoogleMap mMap;
     private boolean MapsGranted = false;
 
+    private List<Address> addresses;
+    public static String firstAddress;
+    private MarkerOptions firstMark,lastMark;
+    private Polyline poly;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
 
+        //bikin channel notif
         createNotifChannel();
+        //ui dijalankan pertama kali
         initUI();
         initData();
         mMapView = (MapView) findViewById(R.id.gpsMap);
         initMap(savedInstanceState);
     }
 
+    private void getAddressStreet(double latitude, double longitude) {
+        geocoder = new Geocoder(this,Locale.getDefault());
+
+        try {
+            addresses = geocoder.getFromLocation(latitude,longitude, 1);
+
+            firstAddress = addresses.get(0).getAddressLine(0);
+
+            addressst.setText(firstAddress);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void initUI() {
+        addressst = (TextView) findViewById(R.id.address);
+
+        geocoder = new Geocoder(this, Locale.getDefault());
         roomName = (TextView) findViewById(R.id.roomChannel);
         roomName.setText(config().getChannelName());
         roomName.setSelected(true);
         Speed = (TextView) findViewById(R.id.speed);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        Speed.setText( 0 + "km/h");
+        Speed.setText( 0 + ".0 km/h");
+
 
         int role = getIntent().getIntExtra(io.agora.openlive.Constants.KEY_CLIENT_ROLE,
                 Constants.CLIENT_ROLE_AUDIENCE);
         boolean isBroadcaster = (role == Constants.CLIENT_ROLE_BROADCASTER);
+
+        mSwitchCamera = findViewById(R.id.live_btn_switch_camera);
+        takePic = findViewById(R.id.takepic);
 
         mMuteAudioBtn = findViewById(R.id.live_btn_mute_audio);
         mMuteAudioBtn.setActivated(isBroadcaster);
@@ -121,18 +156,25 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         mVideoGridContainer.setStatsManager(statsManager());
 
         rtcEngine().setClientRole(role);
-        if (isBroadcaster) startBroadcast();
+        if(isBroadcaster){
+            startBroadcast();
+        }else{
+            mMuteAudioBtn.setVisibility(View.INVISIBLE);
+            mSwitchCamera.setVisibility(View.INVISIBLE);
+            takePic.setVisibility(View.INVISIBLE);
+        }
     }
 
-    private void getLastKnownLocation() {
+    private void getLastKnownLocation(){
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300, 10, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300, 4, this);
         Task locationResult = mFusedLocationProviderClient.getLastLocation();
         locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
@@ -141,6 +183,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
                     Location location = task.getResult();
                     latitude = location.getLatitude();
                     longitude = location.getLongitude();
+                    getAddressStreet(latitude, longitude);
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(location.getLatitude(),
                                     location.getLongitude()), DEFAULT_ZOOM));
@@ -153,11 +196,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
                 }
             }
         });
-
-        //googlemap api sudah ada harusnya
         //routes api
-        //directions api
-
     }
 
     private void initMap(Bundle savedInstanceState) {
@@ -188,7 +227,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         rtcEngine().setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
         SurfaceView surface = prepareRtcVideo(0, true);
         mVideoGridContainer.addUserVideoSurface(0, surface, true);
-        rtcEngine().switchCamera();
         mMuteAudioBtn.setActivated(true);
     }
 
@@ -395,7 +433,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_eye)
                     .setContentTitle("Specto")
-                    .setContentText("A user just joined your channel!")
+                    .setContentText("You're going too fast! Slow down!")
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setAutoCancel(true)
                     .setFullScreenIntent(fullScreenPendingIntent, true);
@@ -408,7 +446,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     public void takeaPic(View view) {
 
         //Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
-        Log.e("error_pic", "Error masuk sini");
+        //Log.e("error_pic", "Error masuk sini");
 
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
@@ -490,6 +528,8 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
                 });
         final AlertDialog alert = builder.create();
         alert.show();
+//        Intent intent = new Intent(LiveActivity.this,MainActivity.class);
+//        startActivity(intent);
     }
 
     //ganti kamera
@@ -546,7 +586,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         else{
             getPermission();
         }
-
     }
 
     @Override
@@ -569,13 +608,15 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         mMap.setMyLocationEnabled(true);
     }
 
-    private LocationManager lastLocation;
 
     @Override
     public void onLocationChanged(Location currLocation) {
 
         speed = currLocation.getSpeed();
         Speed.setText(speed+ " km/h");
+        if(speed > 60){
+            Careful();
+        }
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(currLocation.getLatitude(),
                         currLocation.getLongitude()), DEFAULT_ZOOM));
@@ -596,30 +637,4 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     public void onProviderDisabled(String provider) {
 
     }
-//
-//    private Location lastLocation;
-//
-//    @Override
-//    public void onLocationChanged(Location location) {
-//
-////        getLastKnownLocation();
-//        if(location != null){
-//            speed = Math.sqrt(Math.pow(location.getLongitude()));
-//        }
-//    }
-//
-//    @Override
-//    public void onStatusChanged(String provider, int status, Bundle extras) {
-//
-//    }
-//
-//    @Override
-//    public void onProviderEnabled(String provider) {
-//
-//    }
-//
-//    @Override
-//    public void onProviderDisabled(String provider) {
-//
-//    }
 }
