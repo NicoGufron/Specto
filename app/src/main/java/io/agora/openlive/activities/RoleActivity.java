@@ -37,6 +37,10 @@ public class RoleActivity extends BaseActivity {
     public void onJoinAsAudience(View view) {
         gotoLiveActivity(Constants.CLIENT_ROLE_AUDIENCE);
     }
+    public void onJoinasDVR(View view){
+        Intent intent = new Intent(RoleActivity.this,RecordMode.class);
+        startActivity(intent);
+    }
 
     private void gotoLiveActivity(int role) {
         Intent intent = new Intent(getIntent());
