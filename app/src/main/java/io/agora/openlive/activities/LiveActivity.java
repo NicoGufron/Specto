@@ -14,6 +14,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -65,6 +66,7 @@ import io.agora.openlive.stats.StatsData;
 import io.agora.openlive.ui.VideoGridContainer;
 import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
+import io.agora.rtc.video.AgoraVideoFrame;
 import io.agora.rtc.video.VideoEncoderConfiguration;
 
 import static io.agora.openlive.Constants.ERROR_DIALOG_REQUEST;
@@ -82,7 +84,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     private String currentPhotoPath;
     public static final String CHANNEL_ID = "misc";
     private VideoGridContainer mVideoGridContainer;
-    private ImageView mMuteAudioBtn, mSwitchCamera, takePic;
+    private ImageView mMuteAudioBtn, mSwitchCamera;
     private VideoEncoderConfiguration.VideoDimensions mVideoDimension;
     private TextView Speed, roomName, addressst;
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -104,8 +106,8 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
 
-        //bikin channel notif
         createNotifChannel();
+        //bikin channel notif
         //ui dijalankan pertama kali
         initUI();
         initData();
@@ -136,18 +138,14 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         roomName = (TextView) findViewById(R.id.roomChannel);
         roomName.setText(config().getChannelName());
         roomName.setSelected(true);
-        Speed = (TextView) findViewById(R.id.speed);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        Speed.setText( 0 + ".0 km/h");
-
 
         int role = getIntent().getIntExtra(io.agora.openlive.Constants.KEY_CLIENT_ROLE,
                 Constants.CLIENT_ROLE_AUDIENCE);
         boolean isBroadcaster = (role == Constants.CLIENT_ROLE_BROADCASTER);
 
         mSwitchCamera = findViewById(R.id.live_btn_switch_camera);
-        takePic = findViewById(R.id.takepic);
 
         mMuteAudioBtn = findViewById(R.id.live_btn_mute_audio);
         mMuteAudioBtn.setActivated(isBroadcaster);
@@ -158,10 +156,10 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         rtcEngine().setClientRole(role);
         if(isBroadcaster){
             startBroadcast();
+
         }else{
             mMuteAudioBtn.setVisibility(View.INVISIBLE);
             mSwitchCamera.setVisibility(View.INVISIBLE);
-            takePic.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -229,6 +227,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         mVideoGridContainer.addUserVideoSurface(0, surface, true);
         mMuteAudioBtn.setActivated(true);
     }
+
 
     private void stopBroadcast() {
         rtcEngine().setClientRole(Constants.CLIENT_ROLE_AUDIENCE);
@@ -443,27 +442,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     }
 
     //ambil foto tapi pindah ke aplikasi kamera
-    public void takeaPic(View view) {
 
-        //Toast.makeText(getApplicationContext(), "Under testing", Toast.LENGTH_SHORT).show();
-        //Log.e("error_pic", "Error masuk sini");
-
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            File imageFile = null;
-            try {
-                imageFile = getImageFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (imageFile != null) {
-                Uri imageUri = FileProvider.getUriForFile(this, "io.agora.openlive.fileprovider", imageFile);
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
-    }
 
     public void goBack(View View) {
         finish();
@@ -528,8 +507,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
                 });
         final AlertDialog alert = builder.create();
         alert.show();
-//        Intent intent = new Intent(LiveActivity.this,MainActivity.class);
-//        startActivity(intent);
     }
 
     //ganti kamera
@@ -612,11 +589,8 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     @Override
     public void onLocationChanged(Location currLocation) {
 
-        speed = currLocation.getSpeed();
-        Speed.setText(speed+ " km/h");
-        if(speed > 60){
-            Careful();
-        }
+//        speed = currLocation.getSpeed();
+//        Speed.setText(speed+ " km/h");
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(currLocation.getLatitude(),
                         currLocation.getLongitude()), DEFAULT_ZOOM));
