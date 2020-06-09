@@ -39,6 +39,10 @@ public class Constants {
     public static final String PREF_MIRROR_ENCODE = "pref_mirror_encode";
 
     public static final String KEY_CLIENT_ROLE = "key_client_role";
-
     public static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+
+    public static final String SHARED_PREFS = "sharedPrefs";
+    public static final int ERROR_DIALOG_REQUEST = 1001;
+    public static final int PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 1002;
+    public static final int PERMISSION_REQUEST_ENABLE_GPS = 1003;
 }
