@@ -30,7 +30,7 @@ if(isset($_SESSION['email'])){
             // komen dlu biar ga refresh abis tu masuk lagi
             $sql = "INSERT INTO videos (whose, thumbnail,video_name,date_taken,start_location,end_location) VALUES 
             ('$whose','$videoPath','$video_name','$datetaken','$startloc','$endloc');";
-            // $q = mysqli_query($conn,$sql);
+            $q = mysqli_query($conn,$sql);
             move_uploaded_file($_FILES['videofile']['tmp_name'],$target_file);
             if($q == TRUE){
                 $result = 
@@ -64,7 +64,7 @@ if(isset($_SESSION['email'])){
             $date_photo = $_POST['date_photo'];
             $sql = "INSERT INTO photos (whose, thumbnail, location, description,date_taken) values 
             ('$whosep','$photo','$photoloc','$descriptionp','$date_photo');";
-            // $q = mysqli_query($conn,$sql);
+            $q = mysqli_query($conn,$sql);
             move_uploaded_file($_FILES['photofile']['tmp_name'],$target_file);
             // var_dump($_SESSION);
             if($q == TRUE){
