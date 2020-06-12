@@ -27,7 +27,6 @@ if(isset($_SESSION['email'])){
             $startloc = $_POST['start_location'];
             $endloc = $_POST['end_location'];
             $datetaken = $_POST['date_taken'];
-            // komen dlu biar ga refresh abis tu masuk lagi
             $sql = "INSERT INTO videos (whose, thumbnail,video_name,date_taken,start_location,end_location) VALUES 
             ('$whose','$videoPath','$video_name','$datetaken','$startloc','$endloc');";
             $q = mysqli_query($conn,$sql);
