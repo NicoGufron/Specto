@@ -76,18 +76,9 @@ import io.agora.openlive.R;
 import io.agora.openlive.utils.ScanFile;
 import static io.agora.openlive.activities.LiveActivity.DEFAULT_ZOOM;
 
-public class DVRmode extends BaseActivity implements LocationListener, OnMapReadyCallback {
+public class DVRmode extends BaseActivity {
 
-    private Geocoder geocoder;
-    private GoogleMap mMap;
     MediaRecorder recorder;
-    private ImageView startReco, stopReco;
-    private List<Address> addressList;
-    private TextView alamat;
-    private LocationManager locationManager;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    public double latitude, longitude;
-    private MapView mMapView;
 
 
     private TextureView textureView;
@@ -148,9 +139,6 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dvrmode);
         initUI();
-        mMapView = (MapView) findViewById(R.id.gpsMap1);
-        initMap(savedInstanceState);
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
@@ -177,7 +165,6 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
 
     @Override
     protected void onResume() {
-        mMapView.onResume();
         super.onResume();
         startBackgroundThread();
         if(textureView.isAvailable()){
@@ -211,63 +198,7 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
     }
 
 
-
-
-
-
-    private void initMap(Bundle savedInstanceState) {
-        Bundle mapViewBundle = null;
-        if (savedInstanceState != null) {
-            mapViewBundle = savedInstanceState.getBundle(io.agora.openlive.Constants.MAPVIEW_BUNDLE_KEY);
-        }
-        mMapView.onCreate(mapViewBundle);
-        mMapView.getMapAsync(this);
-    }
-
-    private void getAddress(Double latitude, Double longitude){
-        geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            addressList = geocoder.getFromLocation(latitude,longitude,1);
-            String address = addressList.get(0).getAddressLine(0);
-            alamat.setText(address);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    private void getLastKnownLocation(){
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300, 4, this);
-        Task locationResult = mFusedLocationProviderClient.getLastLocation();
-        locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
-            @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                if (task.isSuccessful()) {
-                    Location location = task.getResult();
-                    latitude = location.getLatitude();
-                    longitude = location.getLongitude();
-                    getAddress(latitude, longitude);
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(location.getLatitude(),
-                                    location.getLongitude()), DEFAULT_ZOOM));
-                } else {
-                    Log.d("Debug", "Current location is null. Using defaults.");
-                    Log.e("Error", "Exception: %s", task.getException());
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(0, 0), DEFAULT_ZOOM));
-                    mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                }
-            }
-        });
-    }
     private void initUI(){
-        geocoder = new Geocoder(this,Locale.getDefault());
-        alamat = (TextView) findViewById(R.id.alamat);
         textureView = (TextureView) findViewById(R.id.textureView);
         textureView.setSurfaceTextureListener(textureListener);
         recorder = new MediaRecorder();
@@ -313,7 +244,7 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
 
                 String timestamp = new SimpleDateFormat("ddMMyyyy").format(new Date());
                 //nama file
-                file = new File(Environment.getExternalStorageDirectory()+"/Pictures/Specto/"+ timestamp + "_" + "heya" +".jpg");
+                file = new File(Environment.getExternalStorageDirectory()+"/Pictures/Specto/"+ timestamp + "_" +".jpg");
                 ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                     @Override
                     public void onImageAvailable(ImageReader reader) {
@@ -389,7 +320,7 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
     private void createCameraPreview() {
         SurfaceTexture texture = textureView.getSurfaceTexture();
         if(texture != null){
-            texture.setDefaultBufferSize(imageDimension.getWidth(),imageDimension.getHeight());
+            texture.setDefaultBufferSize( 720,1280);
             Surface surface = new Surface(texture);
             try {
                 captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
@@ -454,7 +385,7 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
     }
     //balik ke paling awal
     public void goBack(View view){
-        Intent intent = new Intent(DVRmode.this, MainActivity.class);
+        Intent intent = new Intent(DVRmode.this, RecordMode.class);
         startActivity(intent);
         finish();
     }
@@ -462,37 +393,5 @@ public class DVRmode extends BaseActivity implements LocationListener, OnMapRead
     public void gotoSetting(View view){
         Intent intent = new Intent(DVRmode.this, SettingsActivity.class);
         startActivity(intent);
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        if(location.hasSpeed()){
-//            Careful();
-        }
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom
-                (new LatLng(location.getLatitude(),location.getLongitude()), DEFAULT_ZOOM));
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
-        getLastKnownLocation();
     }
 }
