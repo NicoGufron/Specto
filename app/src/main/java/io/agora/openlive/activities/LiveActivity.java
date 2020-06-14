@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -46,6 +47,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -72,10 +74,11 @@ import io.agora.rtc.video.VideoEncoderConfiguration;
 import static io.agora.openlive.Constants.ERROR_DIALOG_REQUEST;
 import static io.agora.openlive.Constants.PERMISSION_REQUEST_ACCESS_FINE_LOCATION;
 import static io.agora.openlive.Constants.PERMISSION_REQUEST_ENABLE_GPS;
+import static io.agora.openlive.Constants.PREF_NAME;
 
 public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback, LocationListener {
 
-
+    SharedPreferences sharedPreferences;
     private Geocoder geocoder;
     private int notificationId = 1;
     private static final int requestCode = 1000;
@@ -88,7 +91,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     private VideoEncoderConfiguration.VideoDimensions mVideoDimension;
     private TextView Speed, roomName, addressst;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    public double latitude, longitude;
+    public double latitude, longitude, longawal,latawal;
     public static final float DEFAULT_ZOOM = 18.0f;
     private float speed;
     private LocationManager locationManager;
@@ -105,7 +108,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
-
         createNotifChannel();
         //bikin channel notif
         //ui dijalankan pertama kali
@@ -143,6 +145,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
 
         int role = getIntent().getIntExtra(io.agora.openlive.Constants.KEY_CLIENT_ROLE,
                 Constants.CLIENT_ROLE_AUDIENCE);
+
         boolean isBroadcaster = (role == Constants.CLIENT_ROLE_BROADCASTER);
 
         mSwitchCamera = findViewById(R.id.live_btn_switch_camera);
@@ -160,6 +163,8 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         }else{
             mMuteAudioBtn.setVisibility(View.INVISIBLE);
             mSwitchCamera.setVisibility(View.INVISIBLE);
+            mMapView.setVisibility(View.INVISIBLE);
+            addressst.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -209,6 +214,9 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     private void initData() {
         mVideoDimension = io.agora.openlive.Constants.VIDEO_DIMENSIONS[
                 config().getVideoDimenIndex()];
+        sharedPreferences = this.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString("roomName",config().getChannelName()).commit();
+
     }
 
     @Override
@@ -354,7 +362,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         if(isServicesOk())
             if(isMapsEnabled())
                 return true;
-            return false;
+        return false;
     }
 
     //JANGAN DIHAPUS BUAT NOTIF
@@ -514,18 +522,6 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         rtcEngine().switchCamera();
     }
 
-    //kasih nama file dari foto yg diambil
-    private File getImageFile() throws IOException {
-        String timestamp = new SimpleDateFormat("ddMMyyyy").format(new Date());
-        String imageName = "Photo1_" + timestamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-        File imageFile = File.createTempFile(imageName, ".jpg", storageDir);
-        currentPhotoPath = imageFile.getAbsolutePath();
-        return imageFile;
-
-    }
-
     private void getPermission(){
         if(ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
             MapsGranted = true;
@@ -558,11 +554,8 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     protected void onResume() {
         mMapView.onResume();
         super.onResume();
-        if(checkMapServices())
-            getLastKnownLocation();
-        else{
-            getPermission();
-        }
+        roomName.setText(sharedPreferences.getString("roomName",config().getChannelName()));
+
     }
 
     @Override
@@ -580,9 +573,15 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        if(checkMapServices())
+            getLastKnownLocation();
+        else{
+            getPermission();
+        }
         mMap = googleMap;
 //        getLastKnownLocation();
         mMap.setMyLocationEnabled(true);
+        mMap.addMarker(new MarkerOptions().position(new LatLng(latitude,longitude)).title("Initial Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
     }
 
 
@@ -594,6 +593,7 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(currLocation.getLatitude(),
                         currLocation.getLongitude()), DEFAULT_ZOOM));
+//        mMap.addMarker(new MarkerOptions().position(new LatLng(currLocation.getLatitude(),currLocation.getLongitude())).title("Last Location"));
 
     }
 
@@ -610,5 +610,12 @@ public class LiveActivity extends RtcBaseActivity implements OnMapReadyCallback,
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sharedPreferences.edit().putString("roomName", config().getChannelName()).commit();
     }
 }
