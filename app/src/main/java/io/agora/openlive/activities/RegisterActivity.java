@@ -16,6 +16,7 @@ import io.agora.openlive.R;
 
 public class RegisterActivity extends RtcBaseActivity implements AsyncResponse {
 
+    //ga dipake activity ini, ignore semuanya
     private EditText fname, email, pass1,pass2;
     private String name, emails, passw1,passw2;
 
@@ -35,10 +36,10 @@ public class RegisterActivity extends RtcBaseActivity implements AsyncResponse {
         emails = email.getText().toString();
         passw1 = pass1.getText().toString();
         passw2 = pass2.getText().toString();
-        if(name.isEmpty()){
-            if(emails.isEmpty()){
-                if(passw1.isEmpty() && passw2.isEmpty()){
-                    if(passw1.equals(passw2)){
+        if(!name.isEmpty()){
+            if(!emails.isEmpty()){
+                if(!passw1.isEmpty() && passw2.isEmpty()){
+                    if(!passw1.equals(passw2)){
                         HashMap postData = new HashMap();
                         postData.put("name",name);
                         postData.put("email",emails);

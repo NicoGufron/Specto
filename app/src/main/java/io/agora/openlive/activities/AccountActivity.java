@@ -18,21 +18,13 @@ import android.widget.Toast;
 import com.kosalgeek.asynctask.AsyncResponse;
 import com.kosalgeek.asynctask.PostResponseAsyncTask;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.agora.openlive.R;
-import io.agora.openlive.RequestHandler;
-
-import static io.agora.openlive.activities.Configuration.GET_USER;
-import static io.agora.openlive.activities.Configuration.TAG_JSON_ARRAY;
-import static io.agora.openlive.activities.Configuration.TAG_email;
-import static io.agora.openlive.activities.Configuration.TAG_name;
 import static io.agora.openlive.Constants.SHARED_PREFS;
+
+// gak dipake ini activity, ignore activity
 
 public class AccountActivity extends BaseActivity implements AsyncResponse, View.OnClickListener {
 
@@ -65,8 +57,6 @@ public class AccountActivity extends BaseActivity implements AsyncResponse, View
     private void initUI(){
 
         //kalo udh login pake ini
-        hello = (TextView) findViewById(R.id.hello);
-        fullname = (TextView) findViewById(R.id.fullname);
         logged = (TextView) findViewById(R.id.logged);
         emaillog = (TextView) findViewById(R.id.emaillog);
         //buat yg sbelom login
@@ -82,8 +72,6 @@ public class AccountActivity extends BaseActivity implements AsyncResponse, View
         email = (EditText)findViewById(R.id.accountEmail);
         password = (EditText) findViewById(R.id.password);
 
-        hello.setVisibility(View.INVISIBLE);
-        fullname.setVisibility(View.INVISIBLE);
         logged.setVisibility(View.INVISIBLE);
         emaillog.setVisibility(View.INVISIBLE);
 
@@ -125,8 +113,6 @@ public class AccountActivity extends BaseActivity implements AsyncResponse, View
 
             Logout.setVisibility(View.INVISIBLE);
             logged.setVisibility(View.INVISIBLE);
-            hello.setVisibility(View.INVISIBLE);
-            fullname.setVisibility(View.INVISIBLE);
             emaillog.setVisibility(View.INVISIBLE);
         }else{
             //invisible pas udh login
@@ -140,8 +126,6 @@ public class AccountActivity extends BaseActivity implements AsyncResponse, View
             //buat visible kalo udh login
             Logout.setVisibility(View.VISIBLE);
             logged.setVisibility(View.VISIBLE);
-            hello.setVisibility(View.VISIBLE);
-            fullname.setVisibility(View.VISIBLE);
             emaillog.setVisibility(View.VISIBLE);
             emaillog.setText(loademail);
         }
