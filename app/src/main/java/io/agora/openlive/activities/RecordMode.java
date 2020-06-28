@@ -107,7 +107,7 @@ public class RecordMode extends BaseActivity implements OnMapReadyCallback, Loca
     private boolean mIsRecording = false;
     private boolean MapsGranted = false;
     private boolean stop = true;
-    private CameraCaptureSession mCameraCaptureSession;
+    private Location firstLocation;
     private TextView alamat, speedometer;
     private int notificationId = 1;
     private List<Address> addressList;
@@ -198,7 +198,7 @@ public class RecordMode extends BaseActivity implements OnMapReadyCallback, Loca
                 return;
             }
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300, 4, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, this);
         Task locationResult = mFusedLocationProviderClient.getLastLocation();
         locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
@@ -208,6 +208,7 @@ public class RecordMode extends BaseActivity implements OnMapReadyCallback, Loca
                     Location location = task.getResult();
                     latitude = location.getLatitude();
                     longitude = location.getLongitude();
+//                    firstLocation.set(location);
                     getAddress(latitude, longitude);
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(location.getLatitude(),
@@ -224,17 +225,23 @@ public class RecordMode extends BaseActivity implements OnMapReadyCallback, Loca
         });
     }
 
+    private float convert, avgspeed;
+    private float distance;
+
     @Override
     public void onLocationChanged(Location location) {
         if(location.hasSpeed()){
-            speedometer.setText(String.valueOf(location.getSpeed()));
+            convert = location.getSpeed() * 18 / 5;
+            speedometer.setText(convert + " km/h");
+
         }
+//        distance = firstLocation.distanceTo(location);
+//        avgspeed = convert / distance;
+//        Log.d("Distance",String.valueOf(distance));
+//        Log.d("Distance",String.valueOf(avgspeed));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(location.getLatitude(),
                         location.getLongitude()), DEFAULT_ZOOM));
-        if(stop){
-//            mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),location.getLongitude())).title("Last Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-        }
 
     }
 
@@ -466,7 +473,7 @@ public class RecordMode extends BaseActivity implements OnMapReadyCallback, Loca
 
     private File createVideoFileName() throws IOException{
         String timestamp = new SimpleDateFormat("ddMMyyyy").format(new Date());
-        String prepend = "VIDEO_" + timestamp + "_";
+        String prepend = "SPECTO_" + timestamp + "_";
         videoFile = File.createTempFile(prepend,".mp4",videoDir);
         mVideoFileName = videoFile.getAbsolutePath();
         new ScanFile(getApplicationContext(), videoFile);
@@ -493,7 +500,7 @@ public class RecordMode extends BaseActivity implements OnMapReadyCallback, Loca
         recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         recorder.setOutputFile(mVideoFileName);
         recorder.setVideoEncodingBitRate(5000000);
-        recorder.setVideoFrameRate(15);
+        recorder.setVideoFrameRate(24);
         recorder.setVideoSize(mVideosize.getWidth(), mVideosize.getHeight());
         recorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
