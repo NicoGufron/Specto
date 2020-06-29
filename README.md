@@ -9,19 +9,18 @@ a. General
 - pengaturan channel ID harus unik (done)
 - speedometer ditambahkan (done)
 - pembuatan website (done)
-- crud (almost done)
+- crud (done)
 - upload to server opensource (done)
-- jalan yang dilewatin ditambahkan (prioritas)
+- jalan yang dilewatin ditambahkan (cancelled)
+- record trip from camera2 (done)
 
 b. Broadcaster
 - pengaturan kalau broadcaster hanya cuma 1 yang bisa masuk (done)
 - notif kalo ada audience masuk (done)
-- camera API (done)
 - melacak pengemudi (done)
-- upload files di hape(on progress)
+- upload files di hape(cancelled)
 - upload files di website (done)
-
-- record screen (prioritas)
+- record screen (failed, cancelled)
 
 c. Audience
-- audience bisa melihat apa saja yang perlu dilihat
+- audience bisa melihat apa saja yang perlu dilihat (done)
