@@ -2,25 +2,22 @@
 
 mau buat aplikasi tentang live streaming mobil, ngerekam ketika sedang berjalan, bisa ngambil foto, melacak pengemudi serta mengetahui jalan yang dilewatin.
 
-fitur masih banyak yang kurang: 
+fitur yang ada 
 
 a. General
-- notif pengemudi terlalu cepat (done)
-- pengaturan channel ID harus unik (done)
-- speedometer ditambahkan (done)
-- pembuatan website (done)
-- crud (done)
-- upload to server opensource (done)
-- jalan yang dilewatin ditambahkan (cancelled)
-- record trip from camera2 (done)
+- notif pengemudi terlalu cepat
+- pengaturan channel ID harus unik
+- speedometer ditambahkan
+- pembuatan website
+- crud
+- upload to server opensource
+- record trip from camera2
 
 b. Broadcaster
-- pengaturan kalau broadcaster hanya cuma 1 yang bisa masuk (done)
-- notif kalo ada audience masuk (done)
-- melacak pengemudi (done)
-- upload files di hape(cancelled)
-- upload files di website (done)
-- record screen (failed, cancelled)
+- pengaturan kalau broadcaster hanya cuma 1 yang bisa masuk
+- notif kalo ada audience masuk
+- melacak pengemudi
+- upload files di website
 
 c. Audience
-- audience bisa melihat apa saja yang perlu dilihat (done)
+- audience bisa melihat apa saja yang perlu dilihat
